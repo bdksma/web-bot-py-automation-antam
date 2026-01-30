@@ -1,34 +1,56 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Bot Antam Dashboard</title>
+    <title>Bot Antam Dashboard</title>
+    <style>
+        .card { border: 1px solid #ccc; padding: 20px; margin: 10px; border-radius: 8px; width: 300px; display: inline-block; vertical-align: top; }
+        .btn-start { background-color: #28a745; color: white; padding: 10px; cursor: pointer; border: none; width: 100%; }
+        .btn-stop { background-color: #dc3545; color: white; padding: 10px; cursor: pointer; border: none; width: 100%; margin-top: 5px; }
+        .status { font-weight: bold; margin-bottom: 15px; }
+    </style>
 </head>
 <body>
-  <h1>Users</h1>
-  <table border="1">
-    <tr>
-      <th>Name</th>
-      <th>Gram</th>
-      <th>Action</th>
-    </tr>
-    {% for user in users %}
-    <tr>
-      <td>{{ user.full_name }}</td>
-      <td>{{ user.preferred_min_gram }} - {{ user.preferred_max_gram }}</td>
-      <td>
-        <form action="/bots/buy/start/{{ user.id }}" method="post">
-          <button type="submit">Start Bot</button>
-        </form>
-      </td>
-    </tr>
-    {% endfor %}
-  </table>
+    <h1>Antam Bot Control Panel</h1>
 
-  <h1>Stores</h1>
-  <ul>
-    {% for store in stores %}
-      <li>{{ store.name }} - {{ store.location }}</li>
-    {% endfor %}
-  </ul>
+    <div class="card">
+        <h3>1. Bot Pembelian Emas</h3>
+        <p><i>(User login manual di browser)</i></p>
+        <div class="status">Status: <span id="buy-status">Idle</span></div>
+        <button class="btn-start" onclick="startBot('buy')">START BOT PEMBELIAN</button>
+        <button class="btn-stop" onclick="stopBot('buy')">STOP</button>
+    </div>
+
+    <div class="card">
+        <h3>2. Bot Antrean Toko</h3>
+        <p><i>(Otomatis berdasarkan DB 14 hari)</i></p>
+        <div class="status">Status: <span id="queue-status">Idle</span></div>
+        <button class="btn-start" onclick="startBot('queue')">START BOT ANTREAN</button>
+        <button class="btn-stop" onclick="stopBot('queue')">STOP</button>
+    </div>
+
+    <script>
+        async function startBot(type) {
+        // Sesuaikan URL agar tidak menggunakan ID manual jika tidak perlu
+        const endpoint = type === 'buy' ? '/bots/buy/start' : '/bots/queue/start';
+        try {
+            const response = await fetch(endpoint, { method: 'POST' });
+            const data = await response.json();
+            
+            if (response.ok) {
+                document.getElementById(`${type}-status`).innerText = 'Running...';
+                alert(data.status); // Akan memunculkan "Bot Pembelian Dimulai"
+            } else {
+                alert("Error: " + data.detail);
+            }
+        } catch (error) {
+            alert("Gagal menghubungi server");
+        }
+    }
+
+        function stopBot(type) {
+            document.getElementById(`${type}-status`).innerText = 'Stopped';
+            alert(`Stopping ${type} bot...`);
+        }
+    </script>
 </body>
 </html>
