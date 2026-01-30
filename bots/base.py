@@ -1,5 +1,5 @@
 # bots/base.py
-from playwright.sync_api import sync_playwright
+from typing import Optional
 
 class BaseBot:
     def __init__(self):
@@ -9,18 +9,34 @@ class BaseBot:
         self.page = None
         self.running = False
 
-    def start_browser(self, headless=False):
+    def start_browser(self, headless: bool = True):
+        if self.running:
+            return
+
+        # import DI DALAM method (anti crash)
+        from playwright.sync_api import sync_playwright
+
         self.playwright = sync_playwright().start()
-        self.browser = self.playwright.chromium.launch(headless=headless)
+        self.browser = self.playwright.chromium.launch(
+            headless=headless,
+            args=[
+                "--no-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-gpu",
+            ],
+        )
 
-        # penting: persistent session
-        self.context = self.browser.new_context()
+        self.context = self.browser.new_context(
+            viewport={"width": 1280, "height": 800},
+            locale="id-ID",
+        )
+
         self.page = self.context.new_page()
-
         self.running = True
 
     def stop_browser(self):
         self.running = False
+
         if self.context:
             self.context.close()
         if self.browser:

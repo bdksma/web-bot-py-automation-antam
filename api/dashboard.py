@@ -1,11 +1,19 @@
 from fastapi import APIRouter, Depends, Request
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
+
 from db.session import SessionLocal
 from db.models import User, Store
 
-router = APIRouter()
+# ⬇️ penting: kasih prefix biar rapi & konsisten
+router = APIRouter(
+    prefix="/dashboard",
+    tags=["Dashboard"]
+)
+
+# ⬇️ path relatif dari WORKDIR (/app)
 templates = Jinja2Templates(directory="templates")
+
 
 def get_db():
     db = SessionLocal()
@@ -14,8 +22,12 @@ def get_db():
     finally:
         db.close()
 
-@router.get("/dashboard")
-def dashboard(request: Request, db: Session = Depends(get_db)):
+
+@router.get("/")
+def dashboard(
+    request: Request,
+    db: Session = Depends(get_db)
+):
     users = db.query(User).all()
     stores = db.query(Store).all()
 
@@ -24,6 +36,6 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
         {
             "request": request,
             "users": users,
-            "stores": stores
+            "stores": stores,
         }
     )
